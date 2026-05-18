@@ -1,4 +1,4 @@
-const { MongoClient, ServerApiVersion } = require("mongodb");
+const { MongoClient, ServerApiVersion, ObjectId } = require("mongodb");
 const express = require("express");
 const cors = require("cors");
 require("dotenv").config();
@@ -24,6 +24,36 @@ async function run() {
   try {
     // Connect the client to the server	(optional starting in v4.7)
     await client.connect();
+
+    const finEaseDB = client.db("finEaseDB");
+    const transactionsCollection = finEaseDB.collection("transactions");
+
+    //Get all the data
+
+    app.get("/transactions", async (req, res) => {
+      const cursor = transactionsCollection.find();
+      const result = await cursor.toArray();
+      res.send(result);
+    });
+
+    // Get one data using id
+
+    app.get("/transactions/:id", async (req, res) => {
+      const id = req.params.id;
+      const query = { _id: new ObjectId(id) };
+      const result = await transactionsCollection.findOne(query);
+      res.send(result);
+    });
+
+    //Post method
+
+    app.post("/transactions", async (req, res) => {
+      const newTransaction = req.body;
+      console.log(newTransaction);
+      const result = await transactionsCollection.insertOne(newTransaction);
+      res.send(result);
+    });
+
     // Send a ping to confirm a successful connection
     await client.db("admin").command({ ping: 1 });
     console.log(
