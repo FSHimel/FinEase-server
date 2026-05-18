@@ -54,6 +54,38 @@ async function run() {
       res.send(result);
     });
 
+    //Delet method
+
+    app.delete("/transactions/:id", async (req, res) => {
+      const id = req.params.id;
+      const query = { _id: new ObjectId(id) };
+      const result = await transactionsCollection.deleteOne(query);
+      res.send(result);
+    });
+
+    //Update method
+
+    //   {
+    //     "type": "expense",
+    //     "category": "home",
+    //     "amount": 1200,
+    //     "description": "house rent",
+    //     "date": "2025-01-15T00:00:00.000Z",
+    //     "email": "hero1@gmail.com",
+    //     "name": "Hero"
+    //   }
+
+    app.put("/transactions/:id", async (req, res) => {
+      const id = req.params.id;
+      const query = { _id: new ObjectId(id) };
+      const updatedTransaction = req.body;
+      const update = {
+        $set: updatedTransaction,
+      };
+      const result = await transactionsCollection.updateOne(query, update);
+      res.send(result);
+    });
+
     // Send a ping to confirm a successful connection
     await client.db("admin").command({ ping: 1 });
     console.log(
