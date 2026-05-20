@@ -45,6 +45,28 @@ async function run() {
       res.send(result);
     });
 
+    // Get Income, Expense and balance
+
+    app.get("/summary", async (req, res) => {
+      const transactions = await transactionsCollection.find().toArray();
+
+      const income = transactions
+        .filter((t) => t.type === "income")
+        .reduce((sum, t) => sum + Number(t.amount), 0);
+
+      const expenses = transactions
+        .filter((t) => t.type === "expense")
+        .reduce((sum, t) => sum + Number(t.amount), 0);
+
+      const balance = income - expenses;
+
+      res.send({
+        balance,
+        income,
+        expenses,
+      });
+    });
+
     //Post method
 
     app.post("/transactions", async (req, res) => {
@@ -82,15 +104,16 @@ async function run() {
       const update = {
         $set: updatedTransaction,
       };
+
       const result = await transactionsCollection.updateOne(query, update);
       res.send(result);
     });
 
     // Send a ping to confirm a successful connection
-    await client.db("admin").command({ ping: 1 });
-    console.log(
-      "Pinged your deployment. You successfully connected to MongoDB!",
-    );
+    // await client.db("admin").command({ ping: 1 });
+    // console.log(
+    //   "Pinged your deployment. You successfully connected to MongoDB!",
+    // );
   } finally {
   }
 }
