@@ -53,7 +53,7 @@ async function run() {
     res.send(result);
   });
 
-  app.put("/transactions/:id", async (req, res) => {
+  app.put("/transactions/update/:id", async (req, res) => {
     const result = await transactionsCollection.updateOne(
       { _id: new ObjectId(req.params.id) },
       { $set: req.body },
