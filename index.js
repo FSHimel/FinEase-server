@@ -76,15 +76,6 @@ async function run() {
       res.send(result);
     });
 
-    //Delet method
-
-    app.delete("/transactions/:id", async (req, res) => {
-      const id = req.params.id;
-      const query = { _id: new ObjectId(id) };
-      const result = await transactionsCollection.deleteOne(query);
-      res.send(result);
-    });
-
     //Update method
 
     //   {
@@ -97,16 +88,26 @@ async function run() {
     //     "name": "Hero"
     //   }
 
-    app.put("/transactions/:id", async (req, res) => {
+    app.put("/transactions/update/:id", async (req, res) => {
+      const id = req.params.id;
+      const { _id, ...rest } = req.body;
+
+      const result = await transactionsCollection.updateOne(
+        { _id: new ObjectId(id) },
+        { $set: rest },
+      );
+    });
+
+    //Delet method
+
+    app.delete("/transactions/:id", async (req, res) => {
       const id = req.params.id;
       const query = { _id: new ObjectId(id) };
-      const updatedTransaction = req.body;
-      const update = {
-        $set: updatedTransaction,
-      };
-
-      const result = await transactionsCollection.updateOne(query, update);
+      const result = await transactionsCollection.deleteOne(query);
       res.send(result);
+    });
+    app.get("/test", (req, res) => {
+      res.send("server working");
     });
 
     // Send a ping to confirm a successful connection
