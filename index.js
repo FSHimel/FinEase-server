@@ -6,7 +6,12 @@ const app = express();
 const port = 3000;
 
 //middleware
-app.use(cors());
+app.use(
+  cors({
+    origin: "https://fineaseserver-sooty.vercel.app/",
+    credentials: true,
+  }),
+);
 app.use(express.json());
 
 const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@fs.tvevqb6.mongodb.net/?appName=FS`;
