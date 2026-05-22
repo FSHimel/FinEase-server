@@ -90,12 +90,24 @@ async function run() {
 
     app.put("/transactions/update/:id", async (req, res) => {
       const id = req.params.id;
-      const { _id, ...rest } = req.body;
+      const query = { _id: new ObjectId(id) };
+      const updatedData = req.body;
+      const updatedTransaction = {
+        $set: {
+          type: updatedData.type,
+          description: updatedData.description,
+          category: updatedData.category,
+          amount: Number(updatedData.amount),
+          date: updatedData.date,
+        },
+      };
 
       const result = await transactionsCollection.updateOne(
-        { _id: new ObjectId(id) },
-        { $set: rest },
+        query,
+        updatedTransaction,
       );
+      console.log(result);
+      res.send(result);
     });
 
     //Delet method
