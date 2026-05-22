@@ -8,7 +8,7 @@ const port = 3000;
 //middleware
 app.use(
   cors({
-    origin: "https://fineaseserver-sooty.vercel.app/",
+    origin: ["http://localhost:5173", "https://fineaseserver-sooty.vercel.app"],
     credentials: true,
   }),
 );
