@@ -106,7 +106,6 @@ async function run() {
         query,
         updatedTransaction,
       );
-      console.log(result);
       res.send(result);
     });
 
