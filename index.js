@@ -1,17 +1,13 @@
-const { MongoClient, ServerApiVersion, ObjectId } = require("mongodb");
 const express = require("express");
 const cors = require("cors");
+
+const { MongoClient, ServerApiVersion, ObjectId } = require("mongodb");
 require("dotenv").config();
 const app = express();
 const port = 3000;
 
 //middleware
-app.use(
-  cors({
-    origin: ["http://localhost:5173", "https://fineaseserver-sooty.vercel.app"],
-    credentials: true,
-  }),
-);
+app.use(cors());
 app.use(express.json());
 
 const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@fs.tvevqb6.mongodb.net/?appName=FS`;
@@ -36,7 +32,12 @@ async function run() {
     //Get all the data
 
     app.get("/transactions", async (req, res) => {
-      const cursor = transactionsCollection.find();
+      const email = req.query.email;
+      const query = {};
+      if (email) {
+        query.email = email;
+      }
+      const cursor = transactionsCollection.find(query);
       const result = await cursor.toArray();
       res.send(result);
     });
