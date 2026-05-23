@@ -33,7 +33,6 @@ async function run() {
 
     app.get("/transactions", async (req, res) => {
       const email = req.query.email;
-      console.log("EMAIL", email);
       const query = {};
       if (email) {
         query.email = email;
@@ -142,4 +141,6 @@ app.get("/", (req, res) => {
   res.send("FinEase server is running now");
 });
 
-module.exports = app;
+app.listen(port, () => {
+  console.log(`Example app listening on port ${port}`);
+});
