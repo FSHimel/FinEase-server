@@ -44,12 +44,11 @@ async function run() {
     app.get("/transactions", async (req, res) => {
       const email = req.query.email;
 
-      const allData = await transactionsCollection.find().toArray();
+      const result = await transactionsCollection
+        .find({ email: email })
+        .toArray();
 
-      res.send({
-        searchedEmail: email,
-        allData,
-      });
+      res.send(result);
     });
 
     // Get one data using id
