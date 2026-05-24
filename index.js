@@ -33,15 +33,12 @@ async function run() {
 
     app.get("/transactions", async (req, res) => {
       const email = req.query.email;
-      console.log("Query params:", req.query); // ← check Vercel function logs
-      console.log("Email:", req.query.email);
-
-      if (!email) {
-        return res.status(400).send({ message: "Email is required" });
+      const query = { email: email };
+      if (email) {
+        query.email = email;
       }
-
-      const query = { email };
-      const result = await transactionsCollection.find(query).toArray();
+      const cursor = transactionsCollection.find(query);
+      const result = await cursor.toArray();
       res.send(result);
     });
 
