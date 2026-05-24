@@ -22,8 +22,6 @@ const client = new MongoClient(uri, {
 });
 
 async function run() {
-  // Connect the client to the server	(optional starting in v4.7)
-  await client.connect();
   try {
     const finEaseDB = client.db("finEaseDB");
     const transactionsCollection = finEaseDB.collection("transactions");
