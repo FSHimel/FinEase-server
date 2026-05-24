@@ -34,8 +34,10 @@ async function run() {
     app.get("/transactions", async (req, res) => {
       const email = req.query.email;
 
+      console.log("EMAIL RECEIVED:", email);
+
       if (!email) {
-        return res.status(400).send({ error: "Email required" });
+        return res.status(400).send({ message: "Email is required" });
       }
 
       const query = { email };
