@@ -33,16 +33,15 @@ async function run() {
 
     app.get("/transactions", async (req, res) => {
       const email = req.query.email;
-
-      console.log("EMAIL RECEIVED:", email);
+      console.log("Query params:", req.query); // ← check Vercel function logs
+      console.log("Email:", req.query.email);
 
       if (!email) {
         return res.status(400).send({ message: "Email is required" });
       }
 
       const query = { email };
-
-      const result = await collection.find(query).toArray();
+      const result = await transactionsCollection.find(query).toArray();
       res.send(result);
     });
 
@@ -145,7 +144,6 @@ app.get("/", (req, res) => {
   res.send("FinEase server is running now");
 });
 
-// app.listen(port, () => {
-//   console.log(`Example app listening on port ${port}`);
-// });
-module.exports = app;
+app.listen(port, () => {
+  console.log(`Example app listening on port ${port}`);
+});
