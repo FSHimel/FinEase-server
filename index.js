@@ -145,6 +145,7 @@ app.get("/", (req, res) => {
   res.send("FinEase server is running now");
 });
 
-app.listen(port, () => {
-  console.log(`Example app listening on port ${port}`);
-});
+// app.listen(port, () => {
+//   console.log(`Example app listening on port ${port}`);
+// });
+module.exports = app;
