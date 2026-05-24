@@ -21,28 +21,10 @@ const client = new MongoClient(uri, {
   },
 });
 
-let cachedClient = null;
-
-async function getClient() {
-  if (cachedClient) return cachedClient;
-
-  const client = new MongoClient(uri, {
-    serverApi: {
-      version: ServerApiVersion.v1,
-      strict: true,
-      deprecationErrors: true,
-    },
-  });
-
-  await client.connect();
-  cachedClient = client;
-
-  return client;
-
 async function run() {
+  // Connect the client to the server	(optional starting in v4.7)
+  await client.connect();
   try {
-    
-
     const finEaseDB = client.db("finEaseDB");
     const transactionsCollection = finEaseDB.collection("transactions");
 
