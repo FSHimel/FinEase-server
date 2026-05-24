@@ -31,23 +31,14 @@ async function run() {
 
     //Get all the data
 
-    // app.get("/transactions", async (req, res) => {
-    //   const email = req.query.email;
-    //   const query = {};
-    //   if (email) {
-    //     query.email = email;
-    //   }
-    //   const cursor = transactionsCollection.find(query);
-    //   const result = await cursor.toArray();
-    //   res.send(result);
-    // });
     app.get("/transactions", async (req, res) => {
       const email = req.query.email;
-
-      const result = await transactionsCollection
-        .find({ email: email })
-        .toArray();
-
+      const query = {};
+      if (email) {
+        query.email = email;
+      }
+      const cursor = transactionsCollection.find(query);
+      const result = await cursor.toArray();
       res.send(result);
     });
 
