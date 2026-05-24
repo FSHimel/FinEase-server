@@ -33,12 +33,14 @@ async function run() {
 
     app.get("/transactions", async (req, res) => {
       const email = req.query.email;
-      const query = {};
-      if (email) {
-        query.email = email;
+
+      if (!email) {
+        return res.status(400).send({ error: "Email required" });
       }
-      const cursor = transactionsCollection.find(query);
-      const result = await cursor.toArray();
+
+      const query = { email };
+
+      const result = await collection.find(query).toArray();
       res.send(result);
     });
 
