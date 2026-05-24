@@ -7,11 +7,7 @@ const app = express();
 const port = 3000;
 
 //middleware
-app.use(
-  cors({
-    origin: ["http://localhost:5173", "https://finease-e5915.web.app"],
-  }),
-);
+app.use(cors());
 app.use(express.json());
 
 const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@fs.tvevqb6.mongodb.net/?appName=FS`;
