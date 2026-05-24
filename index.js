@@ -32,14 +32,21 @@ async function run() {
     //Get all the data
 
     app.get("/transactions", async (req, res) => {
-      const email = req.query.email;
-      const query = { email: email };
-      if (email) {
-        query.email = email;
+      try {
+        const email = req.query.email;
+
+        let query = {};
+
+        if (email) {
+          query.email = email;
+        }
+
+        const result = await transactionsCollection.find(query).toArray();
+        res.send(result);
+      } catch (error) {
+        console.error(error);
+        res.status(500).send({ error: "Failed to fetch transactions" });
       }
-      const cursor = transactionsCollection.find(query);
-      const result = await cursor.toArray();
-      res.send(result);
     });
 
     // Get one data using id
