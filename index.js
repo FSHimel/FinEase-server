@@ -1,104 +1,132 @@
 const express = require("express");
 const cors = require("cors");
-
 const { MongoClient, ServerApiVersion, ObjectId } = require("mongodb");
 require("dotenv").config();
-const app = express();
-const port = 3000;
 
-//middleware
+const app = express();
+
+// middleware
 app.use(cors());
 app.use(express.json());
 
-const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@fs.tvevqb6.mongodb.net/?appName=FS`;
+// env
+const DB_USER = process.env.DB_USER;
+const DB_PASS = process.env.DB_PASS;
 
-// Create a MongoClient with a MongoClientOptions object to set the Stable API version
-const client = new MongoClient(uri, {
-  serverApi: {
-    version: ServerApiVersion.v1,
-    strict: true,
-    deprecationErrors: true,
-  },
+// mongo uri
+const uri = `mongodb+srv://${DB_USER}:${DB_PASS}@fs.tvevqb6.mongodb.net/?retryWrites=true&w=majority&appName=FS`;
+
+// client
+let cachedClient = null;
+
+async function getClient() {
+  if (cachedClient) return cachedClient;
+
+  const client = new MongoClient(uri, {
+    serverApi: {
+      version: ServerApiVersion.v1,
+      strict: true,
+      deprecationErrors: true,
+    },
+  });
+
+  await client.connect();
+  cachedClient = client;
+
+  return client;
+}
+
+/* ---------------- ROUTES ---------------- */
+
+// GET all transactions (with optional email filter)
+app.get("/transactions", async (req, res) => {
+  try {
+    const email = req.query.email;
+
+    const client = await getClient();
+    const collection = client.db("finEaseDB").collection("transactions");
+
+    let query = {};
+    if (email) {
+      query.email = email;
+    }
+
+    const result = await collection.find(query).toArray();
+    res.send(result);
+  } catch (error) {
+    console.error(error);
+    res.status(500).send({ error: "Failed to fetch transactions" });
+  }
 });
 
-async function run() {
+// GET single transaction
+app.get("/transactions/:id", async (req, res) => {
   try {
-    // Connect the client to the server	(optional starting in v4.7)
-    await client.connect();
+    const id = req.params.id;
 
-    const finEaseDB = client.db("finEaseDB");
-    const transactionsCollection = finEaseDB.collection("transactions");
+    const client = await getClient();
+    const collection = client.db("finEaseDB").collection("transactions");
 
-    //Get all the data
+    const result = await collection.findOne({ _id: new ObjectId(id) });
 
-    app.get("/transactions", async (req, res) => {
-      const email = req.query.email;
-      const query = { email: email };
-      if (email) {
-        query.email = email;
-      }
-      const cursor = transactionsCollection.find(query);
-      const result = await cursor.toArray();
-      res.send(result);
-    });
+    res.send(result);
+  } catch (error) {
+    res.status(500).send({ error: "Failed to fetch transaction" });
+  }
+});
 
-    // Get one data using id
+// SUMMARY (income, expense, balance)
+app.get("/summary", async (req, res) => {
+  try {
+    const client = await getClient();
+    const collection = client.db("finEaseDB").collection("transactions");
 
-    app.get("/transactions/:id", async (req, res) => {
-      const id = req.params.id;
-      const query = { _id: new ObjectId(id) };
-      const result = await transactionsCollection.findOne(query);
-      res.send(result);
-    });
+    const transactions = await collection.find().toArray();
 
-    // Get Income, Expense and balance
+    const income = transactions
+      .filter((t) => t.type === "income")
+      .reduce((sum, t) => sum + Number(t.amount), 0);
 
-    app.get("/summary", async (req, res) => {
-      const transactions = await transactionsCollection.find().toArray();
+    const expenses = transactions
+      .filter((t) => t.type === "expense")
+      .reduce((sum, t) => sum + Number(t.amount), 0);
 
-      const income = transactions
-        .filter((t) => t.type === "income")
-        .reduce((sum, t) => sum + Number(t.amount), 0);
+    const balance = income - expenses;
 
-      const expenses = transactions
-        .filter((t) => t.type === "expense")
-        .reduce((sum, t) => sum + Number(t.amount), 0);
+    res.send({ income, expenses, balance });
+  } catch (error) {
+    res.status(500).send({ error: "Failed to fetch summary" });
+  }
+});
 
-      const balance = income - expenses;
+// CREATE transaction
+app.post("/transactions", async (req, res) => {
+  try {
+    const newTransaction = req.body;
 
-      res.send({
-        balance,
-        income,
-        expenses,
-      });
-    });
+    const client = await getClient();
+    const collection = client.db("finEaseDB").collection("transactions");
 
-    //Post method
+    const result = await collection.insertOne(newTransaction);
 
-    app.post("/transactions", async (req, res) => {
-      const newTransaction = req.body;
-      console.log(newTransaction);
-      const result = await transactionsCollection.insertOne(newTransaction);
-      res.send(result);
-    });
+    res.send(result);
+  } catch (error) {
+    res.status(500).send({ error: "Failed to create transaction" });
+  }
+});
 
-    //Update method
+// UPDATE transaction
+app.put("/transactions/update/:id", async (req, res) => {
+  try {
+    const id = req.params.id;
+    const updatedData = req.body;
 
-    //   {
-    //     "type": "expense",
-    //     "category": "home",
-    //     "amount": 1200,
-    //     "description": "house rent",
-    //     "date": "2025-01-15T00:00:00.000Z",
-    //     "email": "hero1@gmail.com",
-    //     "name": "Hero"
-    //   }
+    const client = await getClient();
+    const collection = client.db("finEaseDB").collection("transactions");
 
-    app.put("/transactions/update/:id", async (req, res) => {
-      const id = req.params.id;
-      const query = { _id: new ObjectId(id) };
-      const updatedData = req.body;
-      const updatedTransaction = {
+    const result = await collection.updateOne(
+      { _id: new ObjectId(id) },
+      {
         $set: {
           type: updatedData.type,
           description: updatedData.description,
@@ -106,39 +134,40 @@ async function run() {
           amount: Number(updatedData.amount),
           date: updatedData.date,
         },
-      };
+      },
+    );
 
-      const result = await transactionsCollection.updateOne(
-        query,
-        updatedTransaction,
-      );
-      res.send(result);
-    });
-
-    //Delet method
-
-    app.delete("/transactions/:id", async (req, res) => {
-      const id = req.params.id;
-      const query = { _id: new ObjectId(id) };
-      const result = await transactionsCollection.deleteOne(query);
-      res.send(result);
-    });
-    app.get("/test", (req, res) => {
-      res.send("server working");
-    });
-
-    // Send a ping to confirm a successful connection
-    // await client.db("admin").command({ ping: 1 });
-    // console.log(
-    //   "Pinged your deployment. You successfully connected to MongoDB!",
-    // );
-  } finally {
+    res.send(result);
+  } catch (error) {
+    res.status(500).send({ error: "Failed to update transaction" });
   }
-}
-run().catch(console.dir);
-
-app.get("/", (req, res) => {
-  res.send("FinEase server is running now");
 });
 
+// DELETE transaction
+app.delete("/transactions/:id", async (req, res) => {
+  try {
+    const id = req.params.id;
+
+    const client = await getClient();
+    const collection = client.db("finEaseDB").collection("transactions");
+
+    const result = await collection.deleteOne({ _id: new ObjectId(id) });
+
+    res.send(result);
+  } catch (error) {
+    res.status(500).send({ error: "Failed to delete transaction" });
+  }
+});
+
+// test route
+app.get("/test", (req, res) => {
+  res.send("server working");
+});
+
+// root
+app.get("/", (req, res) => {
+  res.send("FinEase server running on Vercel 🚀");
+});
+
+// ❌ IMPORTANT: NO app.listen for Vercel
 module.exports = app;
