@@ -31,15 +31,25 @@ async function run() {
 
     //Get all the data
 
+    // app.get("/transactions", async (req, res) => {
+    //   const email = req.query.email;
+    //   const query = {};
+    //   if (email) {
+    //     query.email = email;
+    //   }
+    //   const cursor = transactionsCollection.find(query);
+    //   const result = await cursor.toArray();
+    //   res.send(result);
+    // });
     app.get("/transactions", async (req, res) => {
       const email = req.query.email;
-      const query = {};
-      if (email) {
-        query.email = email;
-      }
-      const cursor = transactionsCollection.find(query);
-      const result = await cursor.toArray();
-      res.send(result);
+
+      const allData = await transactionsCollection.find().toArray();
+
+      res.send({
+        searchedEmail: email,
+        allData,
+      });
     });
 
     // Get one data using id
@@ -141,4 +151,6 @@ app.get("/", (req, res) => {
   res.send("FinEase server is running now");
 });
 
-module.exports = app;
+app.listen(port, () => {
+  console.log(`Example app listening on port ${port}`);
+});
