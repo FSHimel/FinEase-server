@@ -51,22 +51,27 @@ async function run() {
     // Get Income, Expense and balance
 
     app.get("/summary", async (req, res) => {
-      const transactions = await transactionsCollection.find().toArray();
+      const email = req.query.email;
+
+      const transactions = await transactionsCollection
+        .find({ email })
+        .toArray();
 
       const income = transactions
         .filter((t) => t.type === "income")
         .reduce((sum, t) => sum + Number(t.amount), 0);
 
-      const expenses = transactions
+      const expense = transactions
         .filter((t) => t.type === "expense")
         .reduce((sum, t) => sum + Number(t.amount), 0);
 
-      const balance = income - expenses;
+      const balance = income - expense;
 
       res.send({
-        balance,
         income,
-        expenses,
+        expense,
+        balance,
+        transactions,
       });
     });
     //Post method
