@@ -70,6 +70,25 @@ async function run() {
       });
     });
 
+    app.get("/transactions/category-total/:category", async (req, res) => {
+      const category = req.params.category;
+
+      const transactions = await transactionsCollection
+        .find({ category })
+        .toArray();
+
+      const total = transactions.reduce(
+        (sum, item) => sum + Number(item.amount),
+        0,
+      );
+
+      res.send({
+        category,
+        total,
+        count: transactions.length,
+      });
+    });
+
     //Post method
 
     app.post("/transactions", async (req, res) => {
